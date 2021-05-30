@@ -25,7 +25,8 @@ impl Rdx for () {
 }
 
 impl<A> Rdx for (A,)
-    where A: Rdx
+where
+    A: Rdx,
 {
     #[inline]
     fn cfg_nbuckets() -> usize {
@@ -49,8 +50,9 @@ impl<A> Rdx for (A,)
 }
 
 impl<A, B> Rdx for (A, B)
-    where A: Rdx,
-          B: Rdx
+where
+    A: Rdx,
+    B: Rdx,
 {
     #[inline]
     fn cfg_nbuckets() -> usize {
@@ -82,14 +84,17 @@ impl<A, B> Rdx for (A, B)
 }
 
 impl<A, B, C> Rdx for (A, B, C)
-    where A: Rdx,
-          B: Rdx,
-          C: Rdx
+where
+    A: Rdx,
+    B: Rdx,
+    C: Rdx,
 {
     #[inline]
     fn cfg_nbuckets() -> usize {
-        cmp::max(A::cfg_nbuckets(),
-                 cmp::max(B::cfg_nbuckets(), C::cfg_nbuckets()))
+        cmp::max(
+            A::cfg_nbuckets(),
+            cmp::max(B::cfg_nbuckets(), C::cfg_nbuckets()),
+        )
     }
 
     #[inline]
@@ -104,7 +109,8 @@ impl<A, B, C> Rdx for (A, B, C)
         } else if round < B::cfg_nrounds() + C::cfg_nrounds() {
             self.1.get_bucket(round - C::cfg_nrounds())
         } else {
-            self.0.get_bucket(round - B::cfg_nrounds() - C::cfg_nrounds())
+            self.0
+                .get_bucket(round - B::cfg_nrounds() - C::cfg_nrounds())
         }
     }
 

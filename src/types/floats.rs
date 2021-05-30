@@ -39,7 +39,7 @@ macro_rules! impl_rdxsort {
                 round == <$alias as Rdx>::cfg_nrounds() && bucket == 0
             }
         }
-    }
+    };
 }
 
 impl_rdxsort!(f32, u32, 0x80000000u32);

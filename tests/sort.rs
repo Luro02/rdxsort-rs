@@ -16,8 +16,9 @@ pub const CFG_N: usize = 10_000;
 pub const CFG_M: usize = 10;
 
 fn is_sorted<T>(data: &[T]) -> bool
-    where T: Clone,
-          T: PartialOrd
+where
+    T: Clone,
+    T: PartialOrd,
 {
     let mut last_entry: Option<T> = None;
     for x in data.iter().cloned() {
@@ -32,17 +33,22 @@ fn is_sorted<T>(data: &[T]) -> bool
 }
 
 pub trait MyHash {
-    fn hash_it<H>(&self, state: &mut H) where H: Hasher;
+    fn hash_it<H>(&self, state: &mut H)
+    where
+        H: Hasher;
 }
 
 macro_rules! trivial_myhash {
     ($t:ty) => {
         impl MyHash for $t {
-            fn hash_it<H>(&self, state: &mut H) where H: Hasher {
+            fn hash_it<H>(&self, state: &mut H)
+            where
+                H: Hasher,
+            {
                 self.hash(state);
             }
         }
-    }
+    };
 }
 
 trivial_myhash!([u8; 0]);
@@ -64,20 +70,29 @@ trivial_myhash!(u64);
 trivial_myhash!(usize);
 
 impl MyHash for f32 {
-    fn hash_it<H>(&self, state: &mut H) where H: Hasher {
-        let alias = unsafe {mem::transmute_copy::<f32, u32>(self)};
+    fn hash_it<H>(&self, state: &mut H)
+    where
+        H: Hasher,
+    {
+        let alias = unsafe { mem::transmute_copy::<f32, u32>(self) };
         alias.hash(state);
     }
 }
 
 impl MyHash for f64 {
-    fn hash_it<H>(&self, state: &mut H) where H: Hasher {
-        let alias = unsafe {mem::transmute_copy::<f64, u64>(self)};
+    fn hash_it<H>(&self, state: &mut H)
+    where
+        H: Hasher,
+    {
+        let alias = unsafe { mem::transmute_copy::<f64, u64>(self) };
         alias.hash(state);
     }
 }
 
-fn guess_entropy<T>(data: &[T]) -> f64 where T: MyHash {
+fn guess_entropy<T>(data: &[T]) -> f64
+where
+    T: MyHash,
+{
     let mut counter = collections::HashMap::<u64, usize>::new();
 
     for x in data {
@@ -89,12 +104,17 @@ fn guess_entropy<T>(data: &[T]) -> f64 where T: MyHash {
         *state += 1;
     }
 
-    counter.values().map(|&x| x as f64 / data.len() as f64).map(|x| -x * x.log2()).fold(0f64, |a, b| a + b)
+    counter
+        .values()
+        .map(|&x| x as f64 / data.len() as f64)
+        .map(|x| -x * x.log2())
+        .fold(0f64, |a, b| a + b)
 }
 
 pub fn test_generic<T>(data: Vec<T>)
-    where T: Clone + PartialOrd,
-          Vec<T>: RdxSort
+where
+    T: Clone + PartialOrd,
+    Vec<T>: RdxSort,
 {
     let mut data = data;
     let n = data.len();
@@ -110,16 +130,18 @@ pub fn test_generic<T>(data: Vec<T>)
 }
 
 pub fn test_empty_generic<T>()
-    where T: Clone + PartialOrd,
-          Vec<T>: RdxSort
+where
+    T: Clone + PartialOrd,
+    Vec<T>: RdxSort,
 {
     let data: Vec<T> = vec![];
     test_generic(data);
 }
 
 pub fn test_rnd_generic<T>(vspecial: Vec<T>)
-    where T: Clone + PartialOrd + Rand + MyHash,
-          Vec<T>: RdxSort
+where
+    T: Clone + PartialOrd + Rand + MyHash,
+    Vec<T>: RdxSort,
 {
     // config
     let entropy_threshold = 0.5f64;
@@ -129,7 +151,10 @@ pub fn test_rnd_generic<T>(vspecial: Vec<T>)
     let mut data: Vec<T> = rng.gen_iter::<T>().take(CFG_N).collect();
     let mut positions: Vec<usize> = (0..(CFG_N + 1)).collect();
     rng.shuffle(&mut positions[..]);
-    assert!(vspecial.len() * CFG_M < CFG_N, "to many special values to test!");
+    assert!(
+        vspecial.len() * CFG_M < CFG_N,
+        "to many special values to test!"
+    );
     for (i, x) in vspecial.into_iter().enumerate() {
         for j in 0..CFG_M {
             let pos = positions[i * CFG_M + j];
@@ -137,24 +162,29 @@ pub fn test_rnd_generic<T>(vspecial: Vec<T>)
         }
     }
     assert!(data.len() == CFG_N, "generated data has wrong length!");
-    assert!(guess_entropy(&data) >= entropy_threshold, "generated data does not contain enough entropy!");
+    assert!(
+        guess_entropy(&data) >= entropy_threshold,
+        "generated data does not contain enough entropy!"
+    );
 
     test_generic(data);
 }
 
 pub fn test_single_generic<T>(x: T)
-    where T: Clone + PartialOrd,
-          Vec<T>: RdxSort
+where
+    T: Clone + PartialOrd,
+    Vec<T>: RdxSort,
 {
     let data: Vec<T> = vec![x];
     test_generic(data);
 }
 
 pub fn test_full_generic<T>(vmin: T, vmax: T)
-    where T: Clone+ PartialOrd + ops::Add,
-          ops::Range<T>: iter::Iterator,
-          Vec<T>: iter::FromIterator<<ops::Range<T> as iter::Iterator>::Item>,
-          Vec<T>: RdxSort
+where
+    T: Clone + PartialOrd + ops::Add,
+    ops::Range<T>: iter::Iterator,
+    Vec<T>: iter::FromIterator<<ops::Range<T> as iter::Iterator>::Item>,
+    Vec<T>: RdxSort,
 {
     // TODO: use inclusive range once it's stable
     let mut data: Vec<T> = (vmin.clone()..vmax.clone()).collect();
@@ -240,7 +270,15 @@ mod sub_i8 {
 
     #[test]
     fn test_rnd_i8() {
-        test_rnd_generic::<i8>(vec![i8::min_value(), i8::min_value() + 1, -1i8, 0i8, 1i8, i8::max_value() - 1, i8::max_value()]);
+        test_rnd_generic::<i8>(vec![
+            i8::min_value(),
+            i8::min_value() + 1,
+            -1i8,
+            0i8,
+            1i8,
+            i8::max_value() - 1,
+            i8::max_value(),
+        ]);
     }
 
     #[test]
@@ -264,7 +302,15 @@ mod sub_i16 {
 
     #[test]
     fn test_rnd_i16() {
-        test_rnd_generic::<i16>(vec![i16::min_value(), i16::min_value() + 1, -1i16, 0i16, 1i16, i16::max_value() - 1, i16::max_value()]);
+        test_rnd_generic::<i16>(vec![
+            i16::min_value(),
+            i16::min_value() + 1,
+            -1i16,
+            0i16,
+            1i16,
+            i16::max_value() - 1,
+            i16::max_value(),
+        ]);
     }
 
     #[test]
@@ -288,7 +334,15 @@ mod sub_i32 {
 
     #[test]
     fn test_rnd_i32() {
-        test_rnd_generic::<i32>(vec![i32::min_value(), i32::min_value() + 1, -1i32, 0i32, 1i32, i32::max_value() - 1, i32::max_value()]);
+        test_rnd_generic::<i32>(vec![
+            i32::min_value(),
+            i32::min_value() + 1,
+            -1i32,
+            0i32,
+            1i32,
+            i32::max_value() - 1,
+            i32::max_value(),
+        ]);
     }
 
     #[test]
@@ -307,7 +361,15 @@ mod sub_i64 {
 
     #[test]
     fn test_rnd_i64() {
-        test_rnd_generic::<i64>(vec![i64::min_value(), i64::min_value() + 1, -1i64, 0i64, 1i64, i64::max_value() - 1, i64::max_value()]);
+        test_rnd_generic::<i64>(vec![
+            i64::min_value(),
+            i64::min_value() + 1,
+            -1i64,
+            0i64,
+            1i64,
+            i64::max_value() - 1,
+            i64::max_value(),
+        ]);
     }
 
     #[test]
@@ -326,7 +388,15 @@ mod sub_isize {
 
     #[test]
     fn test_rnd_isize() {
-        test_rnd_generic::<isize>(vec![isize::min_value(), isize::min_value() + 1, -1, 0, 1, isize::max_value() - 1, isize::max_value()]);
+        test_rnd_generic::<isize>(vec![
+            isize::min_value(),
+            isize::min_value() + 1,
+            -1,
+            0,
+            1,
+            isize::max_value() - 1,
+            isize::max_value(),
+        ]);
     }
 
     #[test]
@@ -452,7 +522,16 @@ mod sub_f32 {
 
     #[test]
     fn test_rnd_f32() {
-        test_rnd_generic::<f32>(vec![-f32::INFINITY, -1.0e-40_f32, -1.0e-41_f32, -0f32, 0f32, 1.0e-41_f32, 1.0e-40_f32, f32::INFINITY]);
+        test_rnd_generic::<f32>(vec![
+            -f32::INFINITY,
+            -1.0e-40_f32,
+            -1.0e-41_f32,
+            -0f32,
+            0f32,
+            1.0e-41_f32,
+            1.0e-40_f32,
+            f32::INFINITY,
+        ]);
     }
 
     #[test]
@@ -473,7 +552,16 @@ mod sub_f64 {
 
     #[test]
     fn test_rnd_f64() {
-        test_rnd_generic::<f64>(vec![-f64::INFINITY, -1.0e-308_f64, -1.0e-309_f64, -0f64, 0f64, 1.0e-309_f64, 1.0e-308_f64, f64::INFINITY]);
+        test_rnd_generic::<f64>(vec![
+            -f64::INFINITY,
+            -1.0e-308_f64,
+            -1.0e-309_f64,
+            -0f64,
+            0f64,
+            1.0e-309_f64,
+            1.0e-308_f64,
+            f64::INFINITY,
+        ]);
     }
 
     #[test]

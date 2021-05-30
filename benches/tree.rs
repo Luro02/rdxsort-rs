@@ -17,7 +17,10 @@ mod unstable {
 
     static N_MEDIUM: usize = 10_000;
 
-    fn bench_generic<F>(b: &mut Bencher, f: F) where F: Fn(Vec<u32>) {
+    fn bench_generic<F>(b: &mut Bencher, f: F)
+    where
+        F: Fn(Vec<u32>),
+    {
         let mut set = HashSet::new();
         let mut rng = XorShiftRng::new_unseeded();
         while set.len() < N_MEDIUM {

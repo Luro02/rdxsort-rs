@@ -13,7 +13,11 @@ impl Rdx for bool {
 
     #[inline]
     fn get_bucket(&self, _round: usize) -> usize {
-        if *self { 1 } else { 0 }
+        if *self {
+            1
+        } else {
+            0
+        }
     }
 
     #[inline]

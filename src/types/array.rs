@@ -2,7 +2,10 @@ use super::Rdx;
 
 macro_rules! impl_rdxsort {
     ($n:expr) => {
-        impl<T> Rdx for [T; $n] where T: Rdx {
+        impl<T> Rdx for [T; $n]
+        where
+            T: Rdx,
+        {
             #[inline]
             fn cfg_nbuckets() -> usize {
                 T::cfg_nbuckets()
@@ -26,7 +29,7 @@ macro_rules! impl_rdxsort {
                 T::reverse(j, bucket)
             }
         }
-    }
+    };
 }
 
 impl_rdxsort!(0);

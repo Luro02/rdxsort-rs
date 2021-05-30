@@ -1,18 +1,17 @@
 use super::Rdx;
 
 use std::cell::RefCell;
-use std::marker::PhantomData;
 use std::fmt;
+use std::marker::PhantomData;
 use std::rc::Rc;
-
 
 type RcInner<T> = Rc<RefCell<NodeInner<T>>>;
 type RcPruned<T> = Rc<RefCell<NodePruned<T>>>;
 
-
 #[derive(Clone)]
 enum Node<T>
-    where T: Clone + Rdx
+where
+    T: Clone + Rdx,
 {
     Inner(RcInner<T>),
     Pruned(RcPruned<T>),
@@ -20,12 +19,13 @@ enum Node<T>
     Free,
 }
 
-
 impl<T> Node<T>
-    where T: Clone + Rdx
+where
+    T: Clone + Rdx,
 {
     fn print(&self, depth: usize)
-        where T: fmt::Display
+    where
+        T: fmt::Display,
     {
         let prefix: String = (0..depth).map(|_| ' ').collect();
         match *self {
@@ -51,18 +51,18 @@ impl<T> Node<T>
     }
 }
 
-
 #[derive(Clone)]
 enum NodeLimited<T>
-    where T: Clone + Rdx
+where
+    T: Clone + Rdx,
 {
     Inner(RcInner<T>),
     Child(T),
 }
 
-
 impl<'a, T> From<&'a NodeLimited<T>> for Node<T>
-    where T: Clone + Rdx
+where
+    T: Clone + Rdx,
 {
     fn from(obj: &'a NodeLimited<T>) -> Node<T> {
         match *obj {
@@ -72,19 +72,19 @@ impl<'a, T> From<&'a NodeLimited<T>> for Node<T>
     }
 }
 
-
 #[derive(Clone)]
 struct NodeInner<T>
-    where T: Clone + Rdx
+where
+    T: Clone + Rdx,
 {
     round: usize,
     children: Vec<Node<T>>,
 }
 
-
 #[derive(Clone)]
 struct NodePruned<T>
-    where T: Clone + Rdx
+where
+    T: Clone + Rdx,
 {
     round: usize,
     nbuckets: usize,
@@ -92,9 +92,9 @@ struct NodePruned<T>
     child: NodeLimited<T>,
 }
 
-
 impl<T> NodeInner<T>
-    where T: Clone + Rdx
+where
+    T: Clone + Rdx,
 {
     fn new(round: usize, nbuckets: usize) -> NodeInner<T> {
         let mut children = Vec::with_capacity(nbuckets);
@@ -140,7 +140,7 @@ impl<T> NodeInner<T>
                 self.children[bucket] = Node::Child(x);
             } else {
                 match self.children[bucket] {
-                    Node::Child(ref mut y) => *y = x,  // XXX: is that a good idea?
+                    Node::Child(ref mut y) => *y = x, // XXX: is that a good idea?
                     _ => unreachable!(),
                 }
             }
@@ -177,9 +177,9 @@ impl<T> NodeInner<T>
     }
 }
 
-
 impl<T> NodePruned<T>
-    where T: Clone + Rdx
+where
+    T: Clone + Rdx,
 {
     fn new(round: usize, nbuckets: usize, x: T) -> NodePruned<T> {
         let mut buckets = Vec::with_capacity(round);
@@ -218,7 +218,7 @@ impl<T> NodePruned<T>
                 // split head, middle and tail
                 let mut buckets_head = self.buckets.clone();
                 let buckets_tail = buckets_head.split_off(i + 1);
-                buckets_head.pop();  // remove middle part
+                buckets_head.pop(); // remove middle part
 
                 // inner node = middle part
                 let mut inner = NodeInner::new(self.round - buckets_head.len(), self.nbuckets);
@@ -285,21 +285,23 @@ impl<T> NodePruned<T>
     }
 }
 
-
 pub struct RdxTree<T>
-    where T: Clone + Rdx
+where
+    T: Clone + Rdx,
 {
     root: Node<T>,
 }
 
-
 impl<T> RdxTree<T>
-    where T: Clone + Rdx
+where
+    T: Clone + Rdx,
 {
     pub fn new() -> RdxTree<T> {
         let rounds = <T as Rdx>::cfg_nrounds();
         let buckets = <T as Rdx>::cfg_nbuckets();
-        RdxTree { root: Node::Inner(Rc::new(RefCell::new(NodeInner::<T>::new(rounds, buckets)))) }
+        RdxTree {
+            root: Node::Inner(Rc::new(RefCell::new(NodeInner::<T>::new(rounds, buckets)))),
+        }
     }
 
     pub fn insert(&mut self, x: T) {
@@ -335,15 +337,16 @@ impl<T> RdxTree<T>
     }
 
     pub fn print(&self)
-        where T: fmt::Display
+    where
+        T: fmt::Display,
     {
         self.root.print(0);
     }
 }
 
-
 pub struct RdxTreeIter<'a, T>
-    where T: Clone + Rdx + 'a
+where
+    T: Clone + Rdx + 'a,
 {
     // iterator stack:
     //   - reference to inner node
@@ -356,11 +359,11 @@ pub struct RdxTreeIter<'a, T>
     phantom: PhantomData<&'a RdxTree<T>>,
 }
 
-
 impl<'a, T> Iterator for RdxTreeIter<'a, T>
-    where T: Clone + Rdx + 'a
+where
+    T: Clone + Rdx + 'a,
 {
-    type Item = T;  // XXX: do not copy!
+    type Item = T; // XXX: do not copy!
 
     fn next(&mut self) -> Option<Self::Item> {
         // the iteration is basically the processing of a stack machine

@@ -13,13 +13,16 @@ pub trait RdxSort {
 
 #[inline]
 fn helper_bucket<T, I>(buckets_b: &mut Vec<Vec<T>>, iter: I, cfg_nbuckets: usize, round: usize)
-    where T: Rdx,
-          I: Iterator<Item = T>
+where
+    T: Rdx,
+    I: Iterator<Item = T>,
 {
     for x in iter {
         let b = x.get_bucket(round);
-        assert!(b < cfg_nbuckets,
-                "Your Rdx implementation returns a bucket >= cfg_nbuckets()!");
+        assert!(
+            b < cfg_nbuckets,
+            "Your Rdx implementation returns a bucket >= cfg_nbuckets()!"
+        );
         unsafe {
             buckets_b.get_unchecked_mut(b).push(x);
         }
@@ -27,7 +30,8 @@ fn helper_bucket<T, I>(buckets_b: &mut Vec<Vec<T>>, iter: I, cfg_nbuckets: usize
 }
 
 impl<T> RdxSort for [T]
-    where T: Rdx + Clone
+where
+    T: Rdx + Clone,
 {
     fn rdxsort(&mut self) {
         // config
@@ -40,7 +44,7 @@ impl<T> RdxSort for [T]
         }
 
         let n = self.len();
-        let presize = cmp::max(16, (n << 2) / cfg_nbuckets);  // TODO: justify the presize value
+        let presize = cmp::max(16, (n << 2) / cfg_nbuckets); // TODO: justify the presize value
         let mut buckets_a: Vec<Vec<T>> = Vec::with_capacity(cfg_nbuckets);
         let mut buckets_b: Vec<Vec<T>> = Vec::with_capacity(cfg_nbuckets);
         for _ in 0..cfg_nbuckets {
@@ -56,10 +60,12 @@ impl<T> RdxSort for [T]
             }
             for (i, bucket) in buckets_a.iter().enumerate() {
                 if T::reverse(round - 1, i) {
-                    helper_bucket(&mut buckets_b,
-                                  bucket.iter().rev().cloned(),
-                                  cfg_nbuckets,
-                                  round);
+                    helper_bucket(
+                        &mut buckets_b,
+                        bucket.iter().rev().cloned(),
+                        cfg_nbuckets,
+                        round,
+                    );
                 } else {
                     helper_bucket(&mut buckets_b, bucket.iter().cloned(), cfg_nbuckets, round);
                 }
@@ -69,8 +75,10 @@ impl<T> RdxSort for [T]
 
         let mut pos = 0;
         for (i, bucket) in buckets_a.iter_mut().enumerate() {
-            assert!(pos + bucket.len() <= self.len(),
-                    "bug: a buckets got oversized");
+            assert!(
+                pos + bucket.len() <= self.len(),
+                "bug: a buckets got oversized"
+            );
 
             if T::reverse(cfg_nrounds - 1, i) {
                 for x in bucket.iter().rev().cloned() {
@@ -81,9 +89,11 @@ impl<T> RdxSort for [T]
                 }
             } else {
                 unsafe {
-                    ptr::copy_nonoverlapping(bucket.as_ptr(),
-                                             self.get_unchecked_mut(pos),
-                                             bucket.len());
+                    ptr::copy_nonoverlapping(
+                        bucket.as_ptr(),
+                        self.get_unchecked_mut(pos),
+                        bucket.len(),
+                    );
                 }
                 pos += bucket.len();
             }
@@ -94,7 +104,8 @@ impl<T> RdxSort for [T]
 }
 
 impl<T> RdxSort for Vec<T>
-    where [T]: RdxSort
+where
+    [T]: RdxSort,
 {
     fn rdxsort(&mut self) {
         self.as_mut_slice().rdxsort();

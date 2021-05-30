@@ -29,7 +29,6 @@ macro_rules! impl_rdxsort {
                     } else {
                         1
                     }
-
                 }
             }
 
@@ -38,7 +37,7 @@ macro_rules! impl_rdxsort {
                 false
             }
         }
-    }
+    };
 }
 
 impl_rdxsort!(i8, u8, i8::min_value(), 0i8);
