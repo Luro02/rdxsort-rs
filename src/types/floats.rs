@@ -1,7 +1,6 @@
 use super::Rdx;
 
 use std::cmp;
-use std::mem;
 
 macro_rules! impl_rdxsort {
     ($t:ty, $alias:ty, $mask:expr) => {
@@ -18,7 +17,7 @@ macro_rules! impl_rdxsort {
 
             #[inline]
             fn get_bucket(&self, round: usize) -> usize {
-                let alias = unsafe { mem::transmute::<$t, $alias>(*self) };
+                let alias = self.to_bits();
                 if round < <$alias as Rdx>::cfg_nrounds() {
                     alias.get_bucket(round)
                 } else {
