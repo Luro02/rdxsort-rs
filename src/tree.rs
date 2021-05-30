@@ -101,10 +101,7 @@ where
         for _ in 0..nbuckets {
             children.push(Node::Free);
         }
-        NodeInner {
-            round: round,
-            children: children,
-        }
+        NodeInner { round, children }
     }
 
     fn insert(&mut self, x: T) {
@@ -190,10 +187,10 @@ where
         }
         let child = NodeLimited::Child(x);
         NodePruned {
-            round: round,
-            nbuckets: nbuckets,
-            buckets: buckets,
-            child: child,
+            round,
+            nbuckets,
+            buckets,
+            child,
         }
     }
 
@@ -324,7 +321,7 @@ where
             _ => unreachable!(),
         }
         RdxTreeIter {
-            stack: stack,
+            stack,
             phantom: PhantomData,
         }
     }
