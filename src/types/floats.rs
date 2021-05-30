@@ -1,6 +1,6 @@
 use super::Rdx;
 
-use std::cmp;
+use core::cmp;
 
 macro_rules! impl_rdxsort {
     ($t:ty, $alias:ty, $mask:expr) => {

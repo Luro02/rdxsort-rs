@@ -1,6 +1,12 @@
-use std::cell::RefCell;
-use std::fmt;
-use std::rc::Rc;
+use core::cell::RefCell;
+use core::fmt;
+
+#[cfg(feature = "alloc")]
+use alloc::rc::Rc;
+#[cfg(feature = "alloc")]
+use alloc::string::String;
+#[cfg(feature = "alloc")]
+use alloc::vec::Vec;
 
 use crate::Rdx;
 

@@ -1,7 +1,6 @@
 use super::Rdx;
 
-use std::cmp;
-use std::mem;
+use core::{cmp, mem};
 
 macro_rules! impl_rdxsort {
     ($t:ty, $alias:ty, $min:expr, $zero:expr) => {

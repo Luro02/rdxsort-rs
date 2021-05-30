@@ -1,3 +1,4 @@
+#![cfg_attr(not(feature = "std"), no_std)]
 //! # RdxSort
 //!
 //! This crate implements [Radix Sort](https://en.wikipedia.org/wiki/Radix_sort) for slices of
@@ -183,6 +184,11 @@
 //! ];
 //! assert!(data == reference);
 //! ```
+
+#[cfg(not(feature = "alloc"))]
+compile_error!("alloc feature is required");
+#[cfg(feature = "alloc")]
+extern crate alloc;
 
 /// Generic Radix Sort implementation
 ///

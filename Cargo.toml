@@ -15,7 +15,10 @@ quicksort = "1.0.0"
 rand = "0.3"
 
 [features]
+default = ["std"]
 unstable = []
+alloc = []
+std = ["alloc"]
 
 [profile.bench]
 debug = true

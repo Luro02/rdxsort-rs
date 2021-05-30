@@ -1,9 +1,9 @@
 use super::Rdx;
 
-use core::ptr;
+use core::{cmp, mem, ptr};
 
-use std::cmp;
-use std::mem;
+#[cfg(feature = "alloc")]
+use alloc::vec::Vec;
 
 /// Radix Sort implementation for some type
 pub trait RdxSort {

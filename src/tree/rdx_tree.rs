@@ -1,7 +1,11 @@
-use std::cell::RefCell;
-use std::fmt;
-use std::marker::PhantomData;
-use std::rc::Rc;
+use core::cell::RefCell;
+use core::fmt;
+use core::marker::PhantomData;
+
+#[cfg(feature = "alloc")]
+use alloc::rc::Rc;
+#[cfg(feature = "alloc")]
+use alloc::vec::Vec;
 
 use super::node::{Node, NodeInner, NodeLimited, RcInner};
 

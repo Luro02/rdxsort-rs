@@ -1,6 +1,6 @@
 use super::Rdx;
 
-use std::cmp;
+use core::cmp;
 
 impl Rdx for () {
     #[inline]
