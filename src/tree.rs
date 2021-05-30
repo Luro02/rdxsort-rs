@@ -133,8 +133,7 @@ where
                 match self.children[bucket] {
                     Node::Free => true,
                     Node::Child(_) => false,
-                    Node::Inner(_) => unreachable!(),
-                    Node::Pruned(_) => unreachable!(),
+                    Node::Inner(_) | Node::Pruned(_) => unreachable!(),
                 }
             };
 
@@ -307,9 +306,7 @@ where
             Node::Inner(inner) => {
                 inner.borrow_mut().insert(x);
             }
-            _ => {
-                unreachable!();
-            }
+            _ => unreachable!(),
         }
     }
 
