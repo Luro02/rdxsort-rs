@@ -188,8 +188,6 @@
 //! }
 //! ```
 
-extern crate core;
-
 /// Generic Radix Sort implementation
 ///
 /// Works by splitting the work in rounds. During every round, the data is sorted into buckets and
@@ -246,18 +244,17 @@ macro_rules! rdx_alias {
                 (*self as $t2).get_bucket(round)
             }
 
-
             #[inline]
             fn reverse(round: usize, bucket: usize) -> bool {
                 <$t2 as Rdx>::reverse(round, bucket)
             }
         }
-    }
+    };
 }
 
 mod sort;
 mod tree;
 mod types;
 
-pub use sort::RdxSort;
-pub use tree::{RdxTree, RdxTreeIter};
+pub use crate::sort::RdxSort;
+pub use crate::tree::{RdxTree, RdxTreeIter};

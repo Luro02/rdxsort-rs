@@ -317,7 +317,7 @@ impl<T> RdxTree<T>
         let mut stack = Vec::new();
         match self.root {
             Node::Inner(ref inner) => {
-                stack.push(((inner.clone(), 1, false)));
+                stack.push((inner.clone(), 1, false));
             }
             _ => unreachable!(),
         }
