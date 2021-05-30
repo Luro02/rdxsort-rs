@@ -41,5 +41,5 @@ macro_rules! impl_rdxsort {
     };
 }
 
-impl_rdxsort!(f32, u32, 0x80000000u32);
-impl_rdxsort!(f64, u64, 0x8000000000000000u64);
+impl_rdxsort!(f32, u32, 0x8000_0000_u32);
+impl_rdxsort!(f64, u64, 0x8000_0000_0000_0000_u64);

@@ -40,10 +40,10 @@ macro_rules! impl_rdxsort {
     };
 }
 
-impl_rdxsort!(i8, u8, i8::min_value(), 0i8);
-impl_rdxsort!(i16, u16, i16::min_value(), 0i16);
-impl_rdxsort!(i32, u32, i32::min_value(), 0i32);
-impl_rdxsort!(i64, u64, i64::min_value(), 0i64);
+impl_rdxsort!(i8, u8, i8::min_value(), 0_i8);
+impl_rdxsort!(i16, u16, i16::min_value(), 0_i16);
+impl_rdxsort!(i32, u32, i32::min_value(), 0_i32);
+impl_rdxsort!(i64, u64, i64::min_value(), 0_i64);
 
 #[cfg(target_pointer_width = "16")]
 rdx_alias!(isize = i16);

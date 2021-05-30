@@ -14,7 +14,7 @@ impl Rdx for u8 {
     #[inline]
     fn get_bucket(&self, round: usize) -> usize {
         let shift = round << 2;
-        ((self >> shift) & 15u8) as usize
+        ((self >> shift) & 15_u8) as usize
     }
 
     #[inline]
@@ -37,7 +37,7 @@ impl Rdx for u16 {
     #[inline]
     fn get_bucket(&self, round: usize) -> usize {
         let shift = round << 2;
-        ((self >> shift) & 15u16) as usize
+        ((self >> shift) & 15_u16) as usize
     }
 
     #[inline]
@@ -60,7 +60,7 @@ impl Rdx for u32 {
     #[inline]
     fn get_bucket(&self, round: usize) -> usize {
         let shift = round << 2;
-        ((self >> shift) & 15u32) as usize
+        ((self >> shift) & 15_u32) as usize
     }
 
     #[inline]
@@ -83,7 +83,7 @@ impl Rdx for u64 {
     #[inline]
     fn get_bucket(&self, round: usize) -> usize {
         let shift = round << 2;
-        ((self >> shift) & 15u64) as usize
+        ((self >> shift) & 15_u64) as usize
     }
 
     #[inline]
