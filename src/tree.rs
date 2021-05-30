@@ -28,20 +28,20 @@ where
         T: fmt::Display,
     {
         let prefix: String = (0..depth).map(|_| ' ').collect();
-        match *self {
-            Node::Inner(ref inner) => {
+        match self {
+            Node::Inner(inner) => {
                 for (i, c) in inner.borrow().children.iter().enumerate() {
                     println!("{}{}:", prefix, i);
                     c.print(depth + 1);
                 }
             }
-            Node::Pruned(ref pruned) => {
+            Node::Pruned(pruned) => {
                 let borrowed = pruned.borrow();
                 println!("{}P: [{:?}]", prefix, borrowed.buckets);
                 let c: Node<T> = (&(borrowed.child)).into();
                 c.print(depth + borrowed.buckets.len());
             }
-            Node::Child(ref x) => {
+            Node::Child(x) => {
                 println!("{}=> {}", prefix, x);
             }
             Node::Free => {
@@ -65,9 +65,9 @@ where
     T: Clone + Rdx,
 {
     fn from(obj: &'a NodeLimited<T>) -> Node<T> {
-        match *obj {
-            NodeLimited::Inner(ref inner) => Node::Inner(inner.clone()),
-            NodeLimited::Child(ref x) => Node::Child(x.clone()),
+        match obj {
+            NodeLimited::Inner(inner) => Node::Inner(inner.clone()),
+            NodeLimited::Child(x) => Node::Child(x.clone()),
         }
     }
 }
@@ -109,37 +109,41 @@ where
 
         if self.round > 1 {
             let clen = self.children.len();
-            let replace = match self.children[bucket] {
-                Node::Free => {
-                    let pruned = Rc::new(RefCell::new(NodePruned::new(self.round - 1, clen, x)));
-                    Some(Node::Pruned(pruned))
+            let replace = {
+                match &mut self.children[bucket] {
+                    Node::Free => {
+                        let pruned =
+                            Rc::new(RefCell::new(NodePruned::new(self.round - 1, clen, x)));
+                        Some(Node::Pruned(pruned))
+                    }
+                    Node::Inner(inner) => {
+                        inner.borrow_mut().insert(x);
+                        None
+                    }
+                    Node::Pruned(pruned) => Some(pruned.borrow().insert_or_split(x)),
+                    Node::Child(_) => unreachable!(),
                 }
-                Node::Inner(ref mut inner) => {
-                    inner.borrow_mut().insert(x);
-                    None
-                }
-                Node::Pruned(ref mut pruned) => Some(pruned.borrow().insert_or_split(x)),
-                Node::Child(_) => unreachable!(),
             };
 
             if let Some(obj) = replace {
                 self.children[bucket] = obj;
             }
         } else {
-            let alloc = match self.children[bucket] {
-                Node::Free => true,
-                Node::Child(_) => false,
-                Node::Inner(_) => unreachable!(),
-                Node::Pruned(_) => unreachable!(),
+            let alloc = {
+                match self.children[bucket] {
+                    Node::Free => true,
+                    Node::Child(_) => false,
+                    Node::Inner(_) => unreachable!(),
+                    Node::Pruned(_) => unreachable!(),
+                }
             };
 
             if alloc {
                 self.children[bucket] = Node::Child(x);
+            } else if let Node::Child(y) = &mut self.children[bucket] {
+                *y = x; // XXX: is that a good idea?
             } else {
-                match self.children[bucket] {
-                    Node::Child(ref mut y) => *y = x, // XXX: is that a good idea?
-                    _ => unreachable!(),
-                }
+                unreachable!()
             }
         }
     }
@@ -147,15 +151,15 @@ where
     fn nnodes(&self) -> (usize, usize, usize, usize) {
         let mut result = (1, 0, 0, 0);
         for c in &self.children {
-            match *c {
-                Node::Inner(ref inner) => {
+            match c {
+                Node::Inner(inner) => {
                     let tmp = inner.borrow().nnodes();
                     result.0 += tmp.0;
                     result.1 += tmp.1;
                     result.2 += tmp.2;
                     result.3 += tmp.3;
                 }
-                Node::Pruned(ref pruned) => {
+                Node::Pruned(pruned) => {
                     let tmp = pruned.borrow().nnodes();
                     result.0 += tmp.0;
                     result.1 += tmp.1;
@@ -185,6 +189,7 @@ where
             let bucket = x.get_bucket(r - 1);
             buckets.push(bucket);
         }
+
         let child = NodeLimited::Child(x);
         NodePruned {
             round,
@@ -253,11 +258,11 @@ where
         // INFO: Copying seems to be faster than returning an Option and do the change in-place.
         //       I don't know why this is the case.
         let mut cpy = self.clone();
-        match cpy.child {
-            NodeLimited::Inner(ref mut inner) => {
+        match &mut cpy.child {
+            NodeLimited::Inner(inner) => {
                 inner.borrow_mut().insert(x);
             }
-            NodeLimited::Child(ref mut y) => {
+            NodeLimited::Child(y) => {
                 *y = x;
             }
         }
@@ -266,8 +271,8 @@ where
 
     fn nnodes(&self) -> (usize, usize, usize, usize) {
         let mut result = (0, 1, 0, 0);
-        match self.child {
-            NodeLimited::Inner(ref inner) => {
+        match &self.child {
+            NodeLimited::Inner(inner) => {
                 let tmp = inner.borrow().nnodes();
                 result.0 += tmp.0;
                 result.1 += tmp.1;
@@ -298,8 +303,8 @@ where
     }
 
     pub fn insert(&mut self, x: T) {
-        match self.root {
-            Node::Inner(ref mut inner) => {
+        match &mut self.root {
+            Node::Inner(inner) => {
                 inner.borrow_mut().insert(x);
             }
             _ => {
@@ -310,8 +315,9 @@ where
 
     pub fn iter<'a>(&self) -> RdxTreeIter<'a, T> {
         let mut stack = Vec::new();
-        match self.root {
-            Node::Inner(ref inner) => {
+
+        match &self.root {
+            Node::Inner(inner) => {
                 stack.push((inner.clone(), 1, false));
             }
             _ => unreachable!(),
@@ -323,9 +329,10 @@ where
     }
 
     pub fn nnodes(&self) -> (usize, usize, usize, usize) {
-        match self.root {
-            Node::Inner(ref inner) => inner.borrow().nnodes(),
-            _ => unreachable!(),
+        if let Node::Inner(inner) = &self.root {
+            inner.borrow().nnodes()
+        } else {
+            unreachable!()
         }
     }
 
@@ -393,29 +400,29 @@ where
                     pop = true;
                 } else {
                     // bounds are fine => inspect current sub-element
-                    match borrowed.children[*i - 1] {
+                    match &borrowed.children[*i - 1] {
                         Node::Free => {
                             // it's a free node, we can ignore that and continue with the iteration
                         }
-                        Node::Child(ref x) => {
+                        Node::Child(x) => {
                             // we have found some usable data :)
                             result = Some(x.clone());
                         }
-                        Node::Inner(ref inner) => {
+                        Node::Inner(inner) => {
                             // inner node => push a new state to the stack
                             let round = <T as Rdx>::cfg_nrounds() - stacksize;
                             let rev = reverse ^ <T as Rdx>::reverse(round, *i - 1);
                             push = Some((inner.clone(), rev));
                         }
-                        Node::Pruned(ref pruned) => {
+                        Node::Pruned(pruned) => {
                             // pruned tree part => let's check what the child is
                             let borrowed2 = pruned.borrow();
-                            match borrowed2.child {
-                                NodeLimited::Child(ref x) => {
+                            match &borrowed2.child {
+                                NodeLimited::Child(x) => {
                                     // usable data :)
                                     result = Some(x.clone());
                                 }
-                                NodeLimited::Inner(ref inner) => {
+                                NodeLimited::Inner(inner) => {
                                     // simulate traversal of pruned tree part to recover `reverse`
                                     let mut round = <T as Rdx>::cfg_nrounds() - stacksize;
                                     let mut rev = reverse ^ <T as Rdx>::reverse(round, *i - 1);
