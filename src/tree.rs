@@ -293,12 +293,8 @@ impl<T> RdxTree<T>
 where
     T: Clone + Rdx,
 {
-    pub fn new() -> RdxTree<T> {
-        let rounds = <T as Rdx>::cfg_nrounds();
-        let buckets = <T as Rdx>::cfg_nbuckets();
-        RdxTree {
-            root: Node::Inner(Rc::new(RefCell::new(NodeInner::<T>::new(rounds, buckets)))),
-        }
+    pub fn new() -> Self {
+        Self::default()
     }
 
     pub fn insert(&mut self, x: T) {
@@ -341,6 +337,19 @@ where
     }
 }
 
+impl<T> Default for RdxTree<T>
+where
+    T: Clone + Rdx,
+{
+    fn default() -> Self {
+        let rounds = <T as Rdx>::cfg_nrounds();
+        let buckets = <T as Rdx>::cfg_nbuckets();
+        Self {
+            root: Node::Inner(Rc::new(RefCell::new(NodeInner::<T>::new(rounds, buckets)))),
+        }
+    }
+}
+
 pub struct RdxTreeIter<'a, T>
 where
     T: Clone + Rdx + 'a,
@@ -380,7 +389,7 @@ where
                 let borrowed = rc.borrow();
 
                 // bounds check for current iterator state
-                if (reverse && (*i == 0)) || (*i >= borrowed.children.len() + 1) {
+                if (reverse && (*i == 0)) || (*i > borrowed.children.len()) {
                     pop = true;
                 } else {
                     // bounds are fine => inspect current sub-element
