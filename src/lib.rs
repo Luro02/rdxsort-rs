@@ -34,11 +34,9 @@
 //! ```
 //! use rdxsort::*;
 //!
-//! fn main() {
-//!     let mut data = vec![2, 10, 0, 1];
-//!     data.rdxsort();
-//!     assert!(data == vec![0, 1, 2, 10]);
-//! }
+//! let mut data = vec![2, 10, 0, 1];
+//! data.rdxsort();
+//! assert!(data == vec![0, 1, 2, 10]);
 //! ```
 //!
 //!
@@ -169,23 +167,21 @@
 //!     }
 //! }
 //!
-//! fn main() {
-//!     let mut data = vec![
-//!         Foo{a: 5, b: 2},
-//!         Foo{a: 0, b: 1},
-//!         Foo{a: 5, b: 1},
-//!         Foo{a: 0, b: 2},
-//!     ];
-//!     data.rdxsort();
+//! let mut data = vec![
+//!     Foo{a: 5, b: 2},
+//!     Foo{a: 0, b: 1},
+//!     Foo{a: 5, b: 1},
+//!     Foo{a: 0, b: 2},
+//! ];
+//! data.rdxsort();
 //!
-//!     let reference = vec![
-//!         Foo{a: 0, b: 1},
-//!         Foo{a: 0, b: 2},
-//!         Foo{a: 5, b: 1},
-//!         Foo{a: 5, b: 2},
-//!     ];
-//!     assert!(data == reference);
-//! }
+//! let reference = vec![
+//!     Foo{a: 0, b: 1},
+//!     Foo{a: 0, b: 2},
+//!     Foo{a: 5, b: 1},
+//!     Foo{a: 5, b: 2},
+//! ];
+//! assert!(data == reference);
 //! ```
 
 /// Generic Radix Sort implementation
