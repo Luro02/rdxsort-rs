@@ -53,12 +53,14 @@ where
             unreachable!()
         }
     }
+}
 
-    pub fn print(&self)
-    where
-        T: fmt::Display,
-    {
-        self.root.print(0);
+impl<T> fmt::Display for RdxTree<T>
+where
+    T: Clone + Rdx + fmt::Display,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.root.fmt(f)
     }
 }
 

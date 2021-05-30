@@ -22,31 +22,44 @@ impl<T> Node<T>
 where
     T: Clone + Rdx,
 {
-    pub(super) fn print(&self, depth: usize)
+    pub(super) fn write_with(&self, f: &mut fmt::Formatter<'_>, depth: usize) -> fmt::Result
     where
         T: fmt::Display,
     {
         let prefix: String = (0..depth).map(|_| ' ').collect();
+
         match self {
             Node::Inner(inner) => {
                 for (i, c) in inner.borrow().children.iter().enumerate() {
-                    println!("{}{}:", prefix, i);
-                    c.print(depth + 1);
+                    writeln!(f, "{}{}:", prefix, i)?;
+                    c.write_with(f, depth + 1)?;
                 }
+
+                Ok(())
             }
             Node::Pruned(pruned) => {
                 let borrowed = pruned.borrow();
-                println!("{}P: [{:?}]", prefix, borrowed.buckets);
+                writeln!(f, "{}P: [{:?}]", prefix, borrowed.buckets)?;
                 let c: Self = (&(borrowed.child)).into();
-                c.print(depth + borrowed.buckets.len());
+
+                c.write_with(f, depth + borrowed.buckets.len())
             }
             Node::Child(x) => {
-                println!("{}=> {}", prefix, x);
+                writeln!(f, "{}=> {}", prefix, x)
             }
             Node::Free => {
-                println!("{}X", prefix);
+                writeln!(f, "{}X", prefix)
             }
         }
+    }
+}
+
+impl<T> fmt::Display for Node<T>
+where
+    T: Clone + Rdx + fmt::Display,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.write_with(f, 0)
     }
 }
 
