@@ -38,7 +38,7 @@ where
             Node::Pruned(pruned) => {
                 let borrowed = pruned.borrow();
                 println!("{}P: [{:?}]", prefix, borrowed.buckets);
-                let c: Node<T> = (&(borrowed.child)).into();
+                let c: Self = (&(borrowed.child)).into();
                 c.print(depth + borrowed.buckets.len());
             }
             Node::Child(x) => {
@@ -64,10 +64,10 @@ impl<'a, T> From<&'a NodeLimited<T>> for Node<T>
 where
     T: Clone + Rdx,
 {
-    fn from(obj: &'a NodeLimited<T>) -> Node<T> {
+    fn from(obj: &'a NodeLimited<T>) -> Self {
         match obj {
-            NodeLimited::Inner(inner) => Node::Inner(inner.clone()),
-            NodeLimited::Child(x) => Node::Child(x.clone()),
+            NodeLimited::Inner(inner) => Self::Inner(inner.clone()),
+            NodeLimited::Child(x) => Self::Child(x.clone()),
         }
     }
 }
@@ -96,12 +96,12 @@ impl<T> NodeInner<T>
 where
     T: Clone + Rdx,
 {
-    fn new(round: usize, nbuckets: usize) -> NodeInner<T> {
+    fn new(round: usize, nbuckets: usize) -> Self {
         let mut children = Vec::with_capacity(nbuckets);
         for _ in 0..nbuckets {
             children.push(Node::Free);
         }
-        NodeInner { round, children }
+        Self { round, children }
     }
 
     fn insert(&mut self, x: T) {
@@ -182,7 +182,7 @@ impl<T> NodePruned<T>
 where
     T: Clone + Rdx,
 {
-    fn new(round: usize, nbuckets: usize, x: T) -> NodePruned<T> {
+    fn new(round: usize, nbuckets: usize, x: T) -> Self {
         let mut buckets = Vec::with_capacity(round);
         for i in 0..round {
             let r = round - i;
@@ -191,7 +191,7 @@ where
         }
 
         let child = NodeLimited::Child(x);
-        NodePruned {
+        Self {
             round,
             nbuckets,
             buckets,
@@ -229,7 +229,7 @@ where
                 if buckets_tail.is_empty() {
                     inner.children[bucket_y] = (&self.child).into();
                 } else {
-                    let tail = Rc::new(RefCell::new(NodePruned {
+                    let tail = Rc::new(RefCell::new(Self {
                         round: self.round - i - 1,
                         nbuckets: self.nbuckets,
                         buckets: buckets_tail,
@@ -243,7 +243,7 @@ where
                 if buckets_head.is_empty() {
                     return Node::Inner(Rc::new(RefCell::new(inner)));
                 } else {
-                    let head = Rc::new(RefCell::new(NodePruned {
+                    let head = Rc::new(RefCell::new(Self {
                         round: self.round,
                         nbuckets: self.nbuckets,
                         buckets: buckets_head,
